@@ -1,0 +1,422 @@
+---
+title: "个人家用服务器整机经验分享"
+published: 2025-08-11
+description: 家用服务器的整机经验分享
+category: 系统运维 
+tags: ["frp", "nginx", "openwrt", "pve", "服务器", "硬件"]
+draft: false
+---
+
+## 目录
+
+- [整机预计用途](/posts/system-ops/experience-of-personal-home-server/#整机预计用途)
+
+- [硬件解决方案](/posts/system-ops/experience-of-personal-home-server/#硬件解决方案)
+
+- [系统解决方案](/posts/system-ops/experience-of-personal-home-server/#系统解决方案)
+
+- [具体实现时的一些踩坑](/posts/system-ops/experience-of-personal-home-server/#具体实现时的一些踩坑)
+
+## 前言
+
+> 这十年来电脑里的东西越来越多了, 十几年前百度网盘注册送的1T早已爆仓, 本地4T的HDD也快满了, 而且时间一久很多数据都会出现问题, 尤其是色图库里出现部分图都半黑全黑了。  
+> 手头上又有台小米8 Root刷校园跑, 后来又用Linux Deploy跑Bot的服务, 近几年也一直想搭个Blog。  
+> 租云服务的每月成本对我来说五、六十已经是既贵又没足够性能和容量了，还会把数据丢到不太可控的云端(我不太喜欢), 家里又有八年前的老硬件, 于是想装个NAS, 顺便把服务都转移上去。(自己也一直很想搞台服务器)
+
+## 整机预计用途
+
+- NAS
+
+- 软路由
+
+- Blog
+
+- 各类服务
+
+- 可能有的MC服务器 已经在准备路上了
+
+## 硬件解决方案
+
+注：缩进字体为暑期回来后更换了的配置
+
+- 处理器: Intel i7-7700(老硬件)
+
+> - 处理器: AMD R5 9600X
+
+- 主板: 七彩虹战斧 B250(老硬件)
+
+> - 主板: 华硕B650M-E
+
+- 内存: 忘记了哪家的DDR4内存了(老硬件)
+
+> - 内存: 金士顿DDR5 16G \* 2
+
+- 散热器: 忘记哪家的下压式散热(老硬件)
+
+> - 散热器: 玄冰400 单塔散热
+
+- 硬盘: 凯侠RC20 1TB, 希捷酷狼4TB \* 4
+
+- 电源: 影钢SFX450W, TG-BOX 850
+
+- 机箱: 见方L
+
+- 杂七杂八的小零件:  
+    SATA电源线一分二  
+    大4Pin一分二  
+    SATA数据线  
+    刷系统用U盘
+
+* * *
+
+**硬盘方面**
+
+七彩虹战斧B250的板子官网文档内容如下：
+
+> 支持PCI-E3.0规范。1个M.2插槽（支持PCIE和MSATA两种通道的M.2 SSD，支持Intel OPTANE 技术）
+
+看样子是不支持4.0的M.2 NVMe, 当时就买了RC20。NAS采用希捷酷狼4TB \* 4 组RAID5。  
+机箱方面, 挑挑拣拣半天，见方L的扩展性和性价比最合想法。支持全高PCIE, ATX电源(向下兼容SFX, FLEX), ATX主板(向下兼容MATX，ITX), 双塔单风扇散热或240水冷。8盘位硬盘笼，使用大4PIN供电，支持热插拔。  
+电源方面, 毕竟是服务器, 电源还是很重要的, 换个全新防止变炸弹。TG-BOX 850则是UPS, 防止市电断电导致服务器异常关机，功率也适配影钢SFX 450W。  
+待机功耗使用老硬件的功耗大概在50w(没实际测过，纯脑测)，新硬件会高一点，并且会跑着MC服务端，功耗只增不降。
+
+> 感觉电费也挺贵的了....
+
+## 系统解决方案
+
+使用PVE虚拟机，内置虚拟机:
+
+- OpenWrt 路由
+
+- DSM 黑群晖
+
+- Ubuntu
+
+- 等等
+
+* * *
+
+**OpenWrt部分**, 使用 immortalwrt-24.10.1-x86-64-generic-ext4-combined.img.gz
+
+**黑群晖部分**，使用 DSM\_DS918+\_72806.pat 引导 DS918\_7.22-72806.img。918+兼容七代i7。  
+内置Alist(现在是OpenList)统一管理各个网盘和本地NAS。
+
+**Ubuntu部分**，使用 ubuntu-24.04.2-live-server-amd64.iso, LTSC版本。
+
+**参考文章:**
+
+> - [关于黑群晖型号选择的一些经验与原因解释](https://nga.178.com/read.php?tid=38650456&rand=770)
+
+* * *
+
+### **网络规划**
+
+OpenWrt作为网关，包括PVE系统本身和我的主力机，所有虚拟机都走OpenWrt，方便管理内网的所有设备和流量。  
+家里的宽带只有百兆，而且板载网卡作WAN口更符合逻辑直觉，我使用了桥接LAN口为USB网卡, WAN为板载网卡。配置文件目录 `/etc/config/network`
+
+装机流程可以参考 在下莫老师:[利用PVE虚拟机，来打造属于自己的All In One系统吧！](https://www.bilibili.com/video/BV1bc411v7A3/)
+
+### **内网穿透**
+
+五一刚装机时用的赛博义父Cloudflared Tunnel, 优点是免费, 缺点自然是速度慢，作为Web管理也是能用, 但如果用作NAS文件传输就完全不够看了, 几十到几百KB/s的速度能熬死人。  
+在返校使用Cloudflared Tunnel时确实卡，流式传输惨不忍睹…假期回来目前已换成了Frp穿透。
+
+**参考文章**
+
+- [All-in-One 搞机手册](https://allinone.quickso.cn/)
+
+## 具体实现时的一些踩坑
+
+网上，官方文档有很多教程，不会可以搜索。这里只进行简单说明。
+
+### **Proxmox VE部署**
+
+1. 设置主板启动为通电自启，为UPS配置做准备。
+
+3. 将镜像烧录U盘, 使用U盘启动按照引导安装即可。
+
+5. 将主力机网口和服务器设置好的管理网口连接，设置主力机的ipv4网关与PVE相同，进入Web管理界面。
+
+7. 设置好桥接LAN口和WAN口，上传需要的系统镜像文件。
+
+9. 把UPS的信号线和服务器连接，安装apcupsd, 按需设置关机信号的条件和通电条件。
+
+11. 设置apcupsd为系统服务, 开机自启。
+
+### **OpenWrt部署**
+
+1. 设置虚拟机阶段，系统和硬盘不分配(之后导入对应系统镜像为硬盘)，内存1G基本足够。
+
+3. 添加需要被配置为WAN口和LAN口的两个网口, 有其他更多网口也可以加。
+
+5. 导入系统镜像，调整硬盘大小(默认大小一般很不够用)，具体增加多大看个人，+4G能满足大部分，我直接+16G了。
+
+7. 设置硬件引导顺序，虚拟机开启自动启动顺序。
+
+9. 启动虚拟机，进入Web管理界面后检查LAN口和WAN口是否正确，可以看MAC地址确认，这时候就可以将硬件WAN口接入上级路由或光猫，硬件LAN口和电脑相连。主力机把Ipv4改为自动分配即可。(OpenWrt已作为路由网关开始工作)
+
+11. 将增加的硬盘大小使用fdisk格式化，挂载上OpenWrt的根目录(可参考 [OpenWrt硬盘扩容篇](https://neverup.cn/p/pve-openwrt-2/))
+
+13. 添加需要的软件包(我自用的主要有Argon theme，Dockerman，Frpc，OpenClash，openssh-sftp-server，wechatpush，luci-nginx)
+
+### **软件包功能说明**
+
+- Argon theme | 更换OpenWrt主题
+
+- Dockerman | Docker支持和对应的Web管理界面
+
+- Frpc | Frpc穿透
+
+- OpenClash | 代理支持，统一管理内网流量
+
+- openssh-sftp-server | 添加SSH的SFTP功能，OpenWrt自带的dropbear使用的是SCP
+
+- wechatpush | 主要用附加功能，通过监听系统日志来实现自动封禁IP，防暴力破解密码
+
+- luci-nginx | 替换OpenWrt的uhttpd Web服务为nginx
+
+### CloudFlared Tunnel部署
+
+需求: **一个域名**
+
+最好是非国内服务商的。我自己是在 [https://www.spaceship.com/zh/](https://www.spaceship.com/zh/) 购买的, 再将域名托管到Cloudflare, 开通Zero Trust, 使用免费计划, 进入二级菜单"网络", 创建Tunnel，剩下的按照提示说明操作就行。**推荐使用Cloudflare的Web界面创建和管理，网络上的在本地创建穿透配置文件的教程已过时。**  
+五一时只有四天左右的时间在家装机，很多东西都是第一次弄，匆忙下脑子一抽Cloudflared Tunnel使用了Docker分别部署在PVE系统、OpenWrt、DSM、Ubuntu。其实全部放在OpenWrt下，将需要穿透的设备的DHCP设为静态，指定IP和端口即可。
+
+### Frp部署
+
+需求: **一台公网服务器**
+
+服务器选择建议:
+
+- 配置无所谓，带宽和流量则按需求选择
+
+- 服务器所在区域建议选择中国内地之外
+
+- 如果只选择用 **IP:Port** 做穿透或是没有**Web服务需求**，服务器所在区域随你选择。
+
+> - 内地服务器要做 http/https 类型的域名转发需要备案
+> 
+> - 把内网Web暴露到公网，对于个人小众使用, 底部不放备案号属于是民不举官不究
+> 
+> - 对于PVE，OpenWrt，DSM的管理界面还要加备案号有点强人所难了, 就算对 www.domain.xxx 做了备案, 真要查起来也不好说..
+
+### 规划方案
+
+> **Client --> Cloudflare CDN --> Public server Frps --> Intranet server Frpc--> Nginx --> Intranet Web/SSH service**
+
+每个Web服务都使用一个二级域名, 最后内网服务还需要获取real ip, 而Frpc会部署在OpenWrt内, 参考Frp官方文档(获取用户真实 IP: [https://gofrp.org/zh-cn/docs/features/common/realip/](https://gofrp.org/zh-cn/docs/features/common/realip/))要搭配Nginx，OpenWrt又使用uhttpd做Web管理，索性就把OpenWrt的Web管理换成了Nginx。
+
+Nginx 代理SSH需要stream module, 软件包也有提供。安装后确认一下模块是否已编译:
+
+```bash
+nginx -V
+```
+
+OpenWrt nginx默认使用uci管理(/etc/config/nginx)，(/etc/nginx/uci.conf.template) 生成 (/etc/nginx/uci.conf) 再生成 (nginx配置文件), 额外的配置文件从 /etc/nginx/conf.d 加载, 模块从 /etc/nginx/module.d 加载。
+
+#### 思路
+
+1. 增加Frp代理, 我使用的Frps设置主域名 + Frpc设置子域名, 其他设置按需即可
+
+3. 修改 uci.conf.template, 增加兼容Cloudflare CDN获取真实IP的日志, 增加stream块, 做ssh反向代理
+
+5. 增加对应的 http/stream 代理配置, 监听OpenWrt本机下的端口, 代理Frpc的流量
+
+7. 增加复用配置文件, 方便添加。主要有需要授信的本地IP, Cloudflare CDN IP和代理设置
+
+9. 设置计划任务更新授信的Cloudflare CDN IP
+
+一开始的计划是用Proxy Protocol获取真实IP, 但发现Cloudflare的Proxy Protocol启用好像要付费..还是用X-Forwarded-For了。
+
+#### 操作
+
+- 设置Frpc代理，代理Nginx要监听的端口，再由Nginx代理对应服务。  
+    能做到这一步，Frp应该能自己配置了，就不啰嗦了。功能按需设置即可。
+
+![](images/image-1-1024x554.png)
+
+- 修改Nginx配置文件
+
+修改模板文件 uci.conf.template, 增加以下内容
+
+```nginx
+# /etc/nginx/uci.conf.template
+# main块
+http {
+        ...
+        log_format openwrt-r
+                '$remote_addr - $connection - $remote_user [$time_local] "$request" - $upstream_addr'
+                '$status  - $body_bytes_sent - $request_time - "$http_referer" '
+                '"$http_user_agent" - "$http_x_forwarded_for" - "$http_cf_connecting_ip"';
+        ...
+}
+
+stream {
+        access_log off;
+        log_format  tcp  '$remote_addr - $connection - [$time_local] $server_addr: $server_port '
+                  '- $status - $upstream_addr - $bytes_received - $bytes_sent - $session_time '
+                  '- $proxy_protocol_addr:$proxy_protocol_port -';
+
+        include conf.d/*.streamconf;
+}
+```
+
+增加需要的http配置文件 /etc/nginx/conf.d/webmng.conf
+
+```nginx
+# /etc/nginx/conf.d/webmng.conf
+server { # OpenWrt Web
+    listen              192.168.3.1:8080;
+    server_name         aaa.domain.xxx;
+
+    access_log /var/log/nginx/openwrt.log openwrt-r;
+
+    include conf.d/realip.serverconf;
+    include conf.d/proxy.serverconf;
+
+    root /www;
+
+    include conf.d/luci.locations;
+
+    sendfile on;
+    large_client_header_buffers 4 32k;
+}
+
+server { # Web-2
+    listen              192.168.3.1:8081;
+    server_name         bbb.domain.xxx;
+
+    include conf.d/proxy.serverconf;
+
+    location / {
+        proxy_pass http://192.168.3.2:9000;
+    }
+
+    sendfile on;
+    large_client_header_buffers 4 32k;
+}
+
+server { # Web-3
+    listen              192.168.3.1:8082;
+    server_name         ccc.domain.xxx;
+
+    include conf.d/proxy.serverconf;
+
+    location / {
+        proxy_pass http://192.168.3.3:9000;
+    }
+
+    sendfile on;
+    large_client_header_buffers 4 32k;
+}
+```
+
+增加需要的SSH配置文件 /etc/nginx/conf.d/ssh.streamconf
+
+```nginx
+# /etc/nginx/conf.d/ssh.streamconf
+server {
+        listen 23 proxy_protocol;
+        proxy_pass 192.168.3.1:22;
+        proxy_connect_timeout 5s;
+        access_log /var/log/nginx/ssh_access.log tcp;
+}
+
+server {
+        listen 24 proxy_protocol;
+        proxy_pass 192.168.3.2:22;
+        proxy_connect_timeout 5s;
+        access_log /var/log/nginx/ssh_access.log tcp;
+}
+
+server {
+        listen 25 proxy_protocol;
+        proxy_pass 192.168.3.3:22;
+        proxy_connect_timeout 5s;
+        access_log /var/log/nginx/ssh_access.log tcp;
+}
+```
+
+添加复用配置文件 /etc/nginx/conf.d/proxy.serverconf
+
+```nginx
+# /etc/nginx/conf.d/proxy.serverconf
+proxy_buffer_size        8k;
+proxy_buffering          off;
+proxy_request_buffering  off;
+proxy_connect_timeout    600s;
+proxy_send_timeout       600s;
+proxy_read_timeout       600s;
+```
+
+添加 /etc/nginx/conf.d/realip.serverconf 的shell脚本 /usr/bin/cloudflare-ip
+
+```bash
+#!/bin/bash
+# /usr/bin/cloudflare-ip
+
+filepath="/etc/nginx/conf.d/realip.serverconf";
+echo "#Cloudflare" > $filepath;
+echo "set_real_ip_from 192.168.3.1" >> $filepath;
+for i in `curl https://www.cloudflare.com/ips-v4`; do
+     echo "set_real_ip_from $i;" >> $filepath;
+done
+for i in `curl https://www.cloudflare.com/ips-v6`; do
+     echo "set_real_ip_from $i;" >> $filepath;
+done
+echo "" >> $filepath;
+echo "# use any of the following two" >> $filepath;
+echo "real_ip_header CF-Connecting-IP;" >> $filepath;
+echo "# real_ip_header X-Forwarded-For;" >> $filepath;
+```
+
+计划任务脚本, 每周三八点刷新一次Cloudflare CDN IP
+
+```bash
+0 8 * * 3 /usr/bin/cloudflare-ip
+```
+* * *
+
+现在Frp是内网穿透的主力，CF Tunnel也保留了作为备用，到这一步网络已经基本完成。至于SSL证书, 客户端到CDN连接是小锁头暂时够用了, 以后有心再弄吧。剩下的就是部署需要的服务，DSM，Ubuntu的配置就不写了，按个人需求增加就行。虚拟机的启动顺序建议优先OpenWrt。
+
+
+## References
+
+- OpenWrt 官方文档 | Nginx webserver: [https://openwrt.org/docs/guide-user/services/webserver/nginx#openwrt\_s\_defaults](https://openwrt.org/docs/guide-user/services/webserver/nginx#openwrt_s_defaults)
+> 
+- Accepting the PROXY Protocol: [https://docs.nginx.com/nginx/admin-guide/load-balancer/using-proxy-protocol/](https://docs.nginx.com/nginx/admin-guide/load-balancer/using-proxy-protocol/)
+> 
+- Nginx中文手册: [https://nginx.mosong.cc/](https://nginx.mosong.cc/)
+> 
+- Module ngx\_stream\_core\_module: [https://nginx.org/en/docs/stream/ngx\_stream\_core\_module.html#proxy\_protocol](https://nginx.org/en/docs/stream/ngx_stream_core_module.html#proxy_protocol)
+> 
+- Module ngx\_stream\_proxy\_module: [https://nginx.org/en/docs/stream/ngx\_stream\_proxy\_module.html](https://nginx.org/en/docs/stream/ngx_stream_proxy_module.html)
+> 
+- Module ngx\_stream\_realip\_module: [https://nginx.org/en/docs/stream/ngx\_stream\_realip\_module.html#set\_real\_ip\_from](https://nginx.org/en/docs/stream/ngx_stream_realip_module.html#set_real_ip_from)
+> 
+- Module ngx\_http\_realip\_module: [https://nginx.org/en/docs/http/ngx\_http\_realip\_module.html](https://nginx.org/en/docs/http/ngx_http_realip_module.html)
+> 
+- nenzheng 博客: [https://nen.ink/posts/openwrt-nginx/](https://nen.ink/posts/openwrt-nginx/)
+> 
+- Cloudflare 官方文档 | restoring-original-visitor-ips: [https://developers.cloudflare.com/support/troubleshooting/restoring-visitor-ips/restoring-original-visitor-ips/#nginx-1](https://developers.cloudflare.com/support/troubleshooting/restoring-visitor-ips/restoring-original-visitor-ips/#nginx-1)
+> 
+- Cloudflare IPs: [https://www.cloudflare-cn.com/ips/](https://www.cloudflare-cn.com/ips/)
+
+## **一些后记**
+
+Nginx代理Frpc时也试过使用端口复用:
+
+> manager.doamain.xxx/aaa/  
+> manager.doamain.xxx/bbb/  
+> manager.doamain.xxx/ccc/
+
+发现会有资源跳转的问题，前后端的sock连接问题, 问题小的还能用, 问题大的根本无法正确跳转网页。  
+Nginx确认已编译--with-stream\_realip\_module, SSH 获取真实IP不知道为什么使用set\_real\_ip\_from还是会报"'set\_real\_ip\_from' directive is not allowed here"。查看日志确定 proxy\_protocol\_addr, proxy\_protocol\_port 变量都获取到了正确的真实IP。但dropbear的日志输出仍然是本地IP。
+
+> 还是用密钥吧...
+
+Nginx这两周临时学的, 不知道有没有大神会(
+
+弄各种服务时也遇到了大大小小很多的问题, 总之也是都基本解决了。  
+国内域名备案有点痛苦...回来先是发现身份证快到期了无法备案，等了一周拿到新证去备案，上头的身份证信息又更新滞后，无法正常校验，又过了五天好像才能正常验证。实在是没什么耐心了就选择了香港服务器, 到专栏完成为止(7.8), 备案还卡在管局审核。  
+就先写这么多吧，准备开始给服务器升级配置，完善Blog，部署MC服务器。

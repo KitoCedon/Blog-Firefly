@@ -1,6 +1,17 @@
 # 关于我 / About Me
 
-你好！我是 **夏叶** ，一个在数字世界中默默无闻的一片叶子。
+你好！我是 **冬澜** ，一股在心灵冬日奋力挣扎的微波。  :spoiler[常玩的游戏包括但不限于MineCraft，osu!]
+
+疾病可能会伴随一辈子，但人生没什么对错，只要别让自己后悔就好。
+
+## 📫 联系方式
+
+如果你想和我交流技术问题，分享有趣的想法，或者只是想打个招呼，欢迎通过以下方式联系我：
+
+- 💻 **GitHub**: [KitoCedon](https://github.com/KitoCedon)
+- ✉️ **Email**: [kitocedon@gmail.com](mailto:kitocedon@gmail.com)
+
+---
 
 ## 🛠️ 关于本站
 
@@ -11,8 +22,6 @@
 
 **🖥️在线预览： [Firefly - Demo site](https://firefly.cuteleaf.cn/)**
 
-**🏠我的博客： [https://blog.cuteleaf.cn](https://blog.cuteleaf.cn/)**
-
 **📝Firefly使用文档： [https://docs-firefly.cuteleaf.cn](https://docs-firefly.cuteleaf.cn/)**
 
 **⭐Firefly开源地址：[https://github.com/CuteLeaf/Firefly](https://github.com/CuteLeaf/Firefly)** 
@@ -22,16 +31,6 @@
 ::github{repo="CuteLeaf/Firefly"}
 
 ::github{repo="saicaca/fuwari"}
-
-
-## 📫 联系方式
-
-如果你想和我交流技术问题，分享有趣的想法，或者只是想打个招呼，欢迎通过以下方式联系我：
-
-- 💻 **GitHub**: [CuteLeaf](https://github.com/CuteLeaf)
-- ✉️ **Email**: [xiaye@msn.com](mailto:xiaye@msn.com)
-
----
 
 *感谢你的来访！希望在这里能找到对你有用的内容！*
 
