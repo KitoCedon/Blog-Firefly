@@ -3,7 +3,7 @@ title: 使用HTTPS端口连接Github Repo
 published: 2026-02-16
 description: 软路由透明代理使用Fake-IP模式，使用HTTPS连接Github Repo
 category: 实用技巧
-tags: ["github", "fake-ip", "ssh"]
+tags: ["Github", "Fake-IP", "SSH"]
 draft: false
 ---
 

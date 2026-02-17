@@ -3,7 +3,7 @@ title: "OpenWrt ACME 配置"
 published: 2025-10-10
 description: 更换OpenWrt ACME为Github版本，手动重新配置
 category: 系统运维
-tags: ["acme", "openwrt"]
+tags: ["ACME", "OpenWrt"]
 draft: false
 ---
 

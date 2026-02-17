@@ -31,6 +31,9 @@ sftp> get ~/.ssh/id_ed25519
 
 ## 测试连接
 
+> [!IMPORTANT]
+> 确保服务器`/etc/ssh/sshd_config`内的`PubkeyAuthentication`为`yes`
+
 ```bash "服务器端口" "用户名@服务器IP(域名)"
 ssh -vi id_ed25519 -p 服务器端口 用户名@服务器IP(域名)
 ```

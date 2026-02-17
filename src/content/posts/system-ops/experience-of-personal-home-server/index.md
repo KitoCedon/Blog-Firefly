@@ -3,7 +3,7 @@ title: "个人家用服务器整机经验分享"
 published: 2025-08-11
 description: 家用服务器的整机经验分享
 category: 系统运维 
-tags: ["frp", "nginx", "openwrt", "pve", "服务器", "硬件"]
+tags: ["Frp", "Nginx", "OpenWrt", "PVE", "服务器", "硬件"]
 draft: false
 ---
 

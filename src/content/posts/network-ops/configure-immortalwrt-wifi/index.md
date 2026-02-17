@@ -3,7 +3,7 @@ title: "ImmortalWrt-Wifi功能配置"
 published: 2026-02-12
 description: 配置 ImmortalWrt Wifi AP
 category: 网络运维
-tags: ["mt7922", "openwrt"]
+tags: ["MT7922", "OpenWrt"]
 draft: false
 ---
 

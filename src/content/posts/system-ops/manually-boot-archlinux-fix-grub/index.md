@@ -3,7 +3,7 @@ title: "手动引导ArchLinux并修复GRUB"
 published: 2025-10-06
 description: 手动引导ArchLinux并修复GRUB
 category: 系统运维
-tags: ["grub", "linux", "arch linux", "btrfs"]
+tags: ["GRUB", "Linux", "Arch Linux", "Btrfs"]
 draft: false
 ---
 
