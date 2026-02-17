@@ -37,3 +37,6 @@ Docs-Firefly/
 cache/
 package/
 .obsidian/
+
+# emacs backup files
+.~
