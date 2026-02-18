@@ -16,7 +16,7 @@ draft: false
 
 ## 具体操作
 
-### 复制一份并修改[Firefly主题自带的deploy.yml](https://github.com/CuteLeaf/Firefly/blob/master/.github/workflows/deploy.yml)
+### 复制一份并修改Firefly主题自带的[deploy.yml](https://github.com/CuteLeaf/Firefly/blob/master/.github/workflows/deploy.yml)
 
 ```diff lang="yml" title=".github/workflows/rsync-deploy.yml"
 - name: Deploy to Pages Branch
@@ -110,9 +110,9 @@ ls -l /var/www
 chmod +x /var/www/blog
 ```
 
-#### 3. SSH密码登录`对应用户`创建密钥
+#### 3. 配置SSH密钥登录
 
-
+SSH密码登录**对应用户**创建密钥
 
 ```bash
 ssh-keygen -C "blog-git-action"
@@ -127,12 +127,18 @@ Your identification has been saved in /home/blogdeploy/.ssh/id_ed25519
 Your public key has been saved in /home/blogdeploy/.ssh/id_ed25519.pub
 ```
 
+将公钥加入信任,记得复制一份私钥
+
+```bash
+cat id_ed25519.pub >> authorized_keys
+```
+
 > [!TIP] 按需锁定密码登录
 > ```bash
 > passwd -l blogdeploy
 > ```
 
-## 设置Github Repository secrets
+### 设置Github Repository secrets
 
 - `REMOTE_PATH` 部署目录
 - `REMOTE_HOST` 连接主机
