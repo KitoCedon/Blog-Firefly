@@ -13,7 +13,7 @@ export const siteConfig: SiteConfig = {
 	subtitle: "睡觉是对的Zzz..",
 
 	// 站点 URL
-	site_url: "https://www.cedon.cn",
+	site_url: "https://blog.cedon.cn",
 
 	// 站点描述
 	description:
