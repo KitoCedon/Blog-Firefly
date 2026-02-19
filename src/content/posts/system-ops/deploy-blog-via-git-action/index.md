@@ -10,7 +10,7 @@ draft: false
 ## 概述
 
 服务器网络拓扑图大概为:  
-`云服务器-frps` -> `PVE-OpenWrt-frpc` -> `PVE-OpenWrt-nginx` -> `PVE-Ubuntu`
+`云服务器-frps` → `PVE-OpenWrt-frpc` → `PVE-OpenWrt-nginx` → `PVE-Ubuntu`
 
 ---
 
@@ -19,8 +19,8 @@ draft: false
 ### 复制一份并修改Firefly主题自带的[deploy.yml](https://github.com/CuteLeaf/Firefly/blob/master/.github/workflows/deploy.yml)
 
 ```diff lang="yml" title=".github/workflows/rsync-deploy.yml"
-- name: Deploy to Pages Branch
-+ name: Deploy to Home Server
+-name: Deploy to Pages Branch
++name: Deploy to Home Server
 
 on:
   # 每次推送到 `master` 分支时触发这个"工作流程"
@@ -29,10 +29,10 @@ on:
     branches: [ master ]
   # 允许你在 GitHub 上的 Actions 标签中手动触发此"工作流程"
   workflow_dispatch:
-
-# 需要写入权限来推送到pages分支
-permissions:
-  contents: write
+-
+-# 需要写入权限来推送到pages分支
+-permissions:
+-  contents: write
 
 jobs:
   build-and-deploy:
